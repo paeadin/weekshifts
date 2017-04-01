@@ -76,7 +76,9 @@ output ["INPUT:"]++
        ["\nWHICH IMPLIES:"]++
        ["\n  totshift="]++[show(totshift)]++
        ["\n  shiftpp="]++[show(shiftpp)]++
-       ["\n  totgap="]++[show(totgap)]++       
+       ["\n  totgap="]++[show(totgap)]++
+       ["\n  sXminpp="]++[show(sXminpp)]++
+       ["\n  sXmaxpp="]++[show(sXmaxpp)]++              
        ["\nOUTPUT:"]++       
        ["\n  w_s1="]++[show(w_s1)]++
        ["\n  w_s2="]++[show(w_s2)]++
