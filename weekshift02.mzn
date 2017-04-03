@@ -21,15 +21,20 @@ array [PEOPLE] of int:p_todo=[shiftpp - p_done[i] | i in PEOPLE];   %for each pe
 array [PEOPLE] of set of WEEK: p_vaca;                              %for each person, his vacation weeks
 array [PEOPLE] of set of WEEK: p_volu;                              %for each person, his voluntary weeks
 int: wrest;                                                         %for all people, the mi number of rest-weeks after a shift 
-int: wsmin;                                                         %for all people, the minimum number of weeks assigned to him for each kind of shift  
-                                                                    %this actually could be derived 
+int: wsmin;                                                         %not used
+int: sXminpp=min(p_todo) div 2;
+int: sXmaxpp=(max(p_todo)+1) div 2;
+array [WEEK] of 0..1: w_heavy=[ if (w_holy[i] > 2 ) then 1 else 0 endif | i in WEEK];
+int: totheavy=sum(w_heavy);
+
 %DECISION VARIABLES
 array [WEEK] of var PEOPLE: w_s1;                                   %for each week, who will do the first shift  
 array [WEEK] of var PEOPLE: w_s2;                                   %for each week, who will do the second shift
 
 %DEPENDENT VARIABLES
-array [PEOPLE] of var 1..shiftpp: p_load1;                          %for each person, how many first-shifts he will do
-array [PEOPLE] of var 1..shiftpp: p_load2;                          %for each person, how many second-shifts he will do
+array [PEOPLE] of var sXminpp..sXmaxpp: p_load1;                    %for each person, how many first-shifts he will do
+array [PEOPLE] of var sXminpp..sXmaxpp: p_load2;                    %for each person, how many second-shifts he will do
+array [PEOPLE] of var 0..totheavy: p_heavy; 
 var int: obj;                                                       %the objective
 
 %CONSTRAINTS
@@ -48,11 +53,13 @@ constraint forall(i in 1..w-wrest) (alldifferent([ if j mod 2 == 0
                                                     then w_s1[j div 2] 
                                                     else w_s2[j div 2] endif 
                                                  | j in i*2..(i+wrest)*2+1  ])) ;
-
+constraint forall(i in PEOPLE) (p_heavy[i]=sum(j in WEEK where (w_s1[j] = i \/ w_s2[j] = i))(w_heavy[j]));
+                                                 
 %OBJECTIVE                                                          %for each person, the number of first-shift holidays and second-shift holidays
                                                                     %assigned to him must tend to be the same. A difference of max 1 is optimal.
 constraint obj=sum(i in PEOPLE)(((p_load1[i] + p_load2[i]) div 2 )- min(p_load1[i],p_load2[i]));
                                                                     
+                                                                                                                                                                                    
 %SEARCH DIRECTIONS                                                  
 solve :: int_search(                                                %search this way: w_s1[1], w_s2[1], w_s1[2], w_s2[2], ...
          [ if i mod 2 == 0 
@@ -73,12 +80,16 @@ output ["INPUT:"]++
        ["\nWHICH IMPLIES:"]++
        ["\n  totshift="]++[show(totshift)]++
        ["\n  shiftpp="]++[show(shiftpp)]++
-       ["\n  totgap="]++[show(totgap)]++       
+       ["\n  totgap="]++[show(totgap)]++
+       ["\n  sXminpp="]++[show(sXminpp)]++
+       ["\n  sXmaxpp="]++[show(sXmaxpp)]++              
+       ["\n  totheavy="]++[show(totheavy)]++
        ["\nOUTPUT:"]++       
        ["\n  w_s1="]++[show(w_s1)]++
        ["\n  w_s2="]++[show(w_s2)]++
        ["\nWHICH IMPLIES:"]++
-       ["\n  p_gap="]++[show([p_todo[i]-p_load1[i]-p_load2[i] | i in PEOPLE])]++
        ["\n  p_load1="]++[show(p_load1)]++
        ["\n  p_load2="]++[show(p_load2)]++
+       ["\n  p_loadgap="]++[show([p_todo[i]-p_load1[i]-p_load2[i] | i in PEOPLE])]++
+       ["\n  p_heavy="]++[show(p_heavy)]++
        ["\n  obj="]++[show(obj)];
