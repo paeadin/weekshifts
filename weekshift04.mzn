@@ -60,7 +60,7 @@ constraint forall(i in PEOPLE) (p_heavy[i]=sum(j in WEEK where (w_s1[j] = i \/ w
                                                  
 %OBJECTIVE                                                          %for each person, the number of first-shift holidays and second-shift holidays
                                                                     %assigned to him must tend to be the same. A difference of max 1 is optimal.
-constraint obj=sum(i in PEOPLE)(((p_load1[i] + p_load2[i]) div 2 )- min(p_load1[i],p_load2[i]) 
+constraint obj=sum(i in PEOPLE)(  max(abs(p_load1[i]-p_load2[i])-1,0) 
                                 + max(p_todo[i]-p_load1[i]-p_load2[i] -1,0) );
                                                                     
                                                                                                                                                                                     
